@@ -23,11 +23,32 @@ with st.sidebar:
     st.write("Current Model: **Llama 3:latest**")
     
     # Button to Load Data
+    # Button to Load Data
     if st.button("🔄 Load/Reload Data"):
         with st.spinner("Loading and Indexing your data..."):
+            
+            # --- UPGRADE 1: The Strict Librarian (System Prompt) ---
+            strict_prompt = (
+                "You are a strict, factual AI assistant. "
+                "You must ONLY use the provided document context to answer the user's question. "
+                "If the answer is not explicitly written in the document, you must reply: "
+                "'I cannot answer this based on the provided document.' "
+                "Do NOT guess, do NOT infer, and do NOT use your outside training knowledge."
+            )
+            
             # A. Setup the Brain & Translator
-            Settings.llm = Ollama(model="llama3:latest", request_timeout=300.0)
+            Settings.llm = Ollama(
+                model="llama3:latest", 
+                request_timeout=300.0,
+                system_prompt=strict_prompt
+            )
             Settings.embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
+            
+            # --- UPGRADE 2: The Slicer (Chunking & Overlap) ---
+            # chunk_size = how many "tokens" (parts of words) per chunk. 512 is a good medium size.
+            # chunk_overlap = how many tokens to repeat between chunks so context isn't lost.
+            Settings.chunk_size = 512
+            Settings.chunk_overlap = 50
             
             # B. Read the Files
             try:
